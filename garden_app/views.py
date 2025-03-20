@@ -15,6 +15,8 @@ from django.core.mail import send_mail
 from django.shortcuts import redirect
 from django.contrib.auth import logout
 from django.urls import reverse
+from django.core.exceptions import ValidationError
+
 # Create your views here.
 
 def index(request):
@@ -33,6 +35,10 @@ from .models import user_reg  # Import your model
 from django.contrib.auth.hashers import check_password
 
 from django.contrib.auth.hashers import check_password
+
+def password_validation(value):
+    if len(value) < 8 or not any(char.isdigit() for char in value) or not any(char.isupper() for char in value):
+        raise ValidationError('Password must be at least 8 characters long, contain at least one digit, and one uppercase letter.')
 
 def login(request):
     if request.method == "POST":
@@ -67,7 +73,7 @@ def register(request):
         address = request.POST.get("address")
         email = request.POST.get("email")
         phone = request.POST.get("phone") or ''
-        password = request.POST.get("password")
+        password = request.POST.get("password",validators=[password_validation])
         confirm_password = request.POST.get("confirm_password")
 
         if user_reg.objects.filter(email=email).exists():
@@ -77,6 +83,7 @@ def register(request):
         if password != confirm_password:
             messages.error(request, 'Passwords do not match!')
             return render(request, 'register.html')
+        
 
         hashed_password = make_password(password)  # Hash the password before saving
 
@@ -276,6 +283,11 @@ def admin_dash(request):
     return render(request,'admin_dash.html')       
     
 #-----Professional--------------------------------------------------------------------------------------------
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth import password_validation
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import prof_reg
 
 def profreg(request):
     if request.method == "POST":
@@ -284,7 +296,7 @@ def profreg(request):
         add = request.POST.get("add")
         em = request.POST.get("em")
         phno = request.POST.get("phno") or ''  # Ensure phone is not None
-        passw = request.POST.get("passw")
+        passw = request.POST.get("passw",validators=[password_validation])
         confirm_pass = request.POST.get("confirm_pass")
 
         if prof_reg.objects.filter(em=em).exists():
@@ -293,6 +305,15 @@ def profreg(request):
         if passw != confirm_pass:
             messages.error(request, 'Passwords do not match!')
             return render(request, 'profreg.html')
+        
+        try:
+            password_validation.validate_password(passw)
+        except Exception as e:
+            messages.error(request, f'Password validation failed: {e}')
+            return render(request, 'profreg.html')
+
+        # Hash the password before saving
+        hashed_password = make_password(passw) 
 
         prof = prof_reg(
             fname=fname,
@@ -317,7 +338,7 @@ def proflogin(request):
         passw = request.POST.get('passw')
         pr = prof_reg.objects.filter(em=em, passw=passw).first()  # Retrieve the first match or None
         
-        if pr:  # Check if a professional user exists
+        if pr and check_password(passw, pr.passw):  # Compare using check_password
             request.session['id'] = pr.id
             request.session['email'] = pr.em
             request.session['passw'] = pr.passw
@@ -1928,3 +1949,70 @@ def reset_password(request, token):
         return redirect("login")
 
     return render(request, "reset_password.html", {"token": token})
+
+
+from django.shortcuts import render, redirect
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.utils.crypto import get_random_string
+from django.urls import reverse
+from .models import prof_reg  # Use prof_reg for professional users
+from django.contrib.auth.hashers import make_password
+
+# Forgot password view for professional users
+def prof_forgot_password(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        user = prof_reg.objects.filter(em=email).first()
+        
+        if user:
+            # Generate unique token (temporary password or reset link)
+            reset_token = get_random_string(length=32)
+            user.reset_token = reset_token  # Store token in DB (add this field to your model)
+            user.save()
+
+            # Generate password reset link
+            reset_link = request.build_absolute_uri(reverse('prof_reset_password', args=[reset_token]))
+
+            # Send email with reset link
+            send_mail(
+                "Password Reset Request - FloraNet",
+                f"Click the link below to reset your password:\n{reset_link}",
+                "FloraNet",  # Replace with your email
+                [email],
+                fail_silently=False,
+            )
+
+            messages.success(request, "A password reset link has been sent to your email.")
+            return redirect('proflogin')
+
+        else:
+            messages.error(request, "Email not found! Please enter a registered email.")
+    
+    return render(request, 'prof_forgotpass.html')  # You can create a similar template for professional users
+
+# Reset password view for professional users
+def prof_reset_password(request, token):
+    user = prof_reg.objects.filter(reset_token=token).first()
+    
+    if not user:
+        messages.error(request, "Invalid or expired reset token.")
+        return redirect('proflogin')
+
+    if request.method == "POST":
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return render(request, "prof_reset_password.html", {"token": token})
+
+        # Hash the password before saving
+        user.passw = make_password(new_password)  # Make sure to use the field name 'passw'
+        user.reset_token = ""  # Clear reset token after successful reset
+        user.save()
+
+        messages.success(request, "Your password has been successfully reset! Please log in.")
+        return redirect("proflogin")
+
+    return render(request, "prof_resetpass.htmll", {"token": token})  # You can create this template for professional users

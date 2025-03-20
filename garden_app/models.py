@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django import forms
+from django.core.exceptions import ValidationError
 
 # Create your models here.
 class user_reg(models.Model):
@@ -33,9 +35,26 @@ class prof_reg(models.Model):
     passw = models.CharField(max_length=100)
     confirm_pass=models.CharField(max_length=100)
     add=models.CharField(max_length=100)
+    reset_token = models.CharField(max_length=50, blank=True, null=True)
     status=models.CharField(max_length=20,choices=STATUS,default='applied')
     def __str__(self):
         return self.fname
+    
+def clean(self):
+        # Check if password and confirm password match
+        if self.password != self.confirm_password:
+            raise ValidationError('Passwords do not match!')
+        # Password complexity check (minimum 8 characters, 1 digit, 1 uppercase)
+        if len(self.password) < 8 or not any(char.isdigit() for char in self.password) or not any(char.isupper() for char in self.password):
+            raise ValidationError('Password must be at least 8 characters long, contain at least one digit, and one uppercase letter.')
+
+        return super().clean()  # Call the parent class clean method
+
+def save(self, *args, **kwargs):
+        # Hash the password before saving
+        if self.password:
+            self.password = make_password(self.password)
+        super().save(*args, **kwargs)
     
 class Feed_user(models.Model):
     RATING_CHOICES = [

@@ -82,14 +82,16 @@
                 <input type="password" class="form-control" id="password" name="passw" placeholder="Enter your password" required>
             </div>
 
-            {% if error %}
-            <p class="error-message">{{ error }}</p>
-            {% endif %}
-
             <div class="d-grid">
                 <button type="submit" class="login-btn">Login</button>
             </div>
         </form>
+        {% if error %}
+        <p class="error-message">{{ error }}</p>
+        {% endif %}
+        <div class="text-center mb-3">
+            <a href="{% url 'prof_forgot_password' %}">Forgot Password?</a> <!-- Forgot Password Link -->
+        </div>
         <p class="text-center">Don't have an account? <a href="{% url 'profreg' %}">Register here</a>.</p>
     </div>
 

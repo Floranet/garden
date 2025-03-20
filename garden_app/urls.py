@@ -96,4 +96,8 @@ urlpatterns = [
     
     path('forgot_password/',views.forgot_password, name='forgot_password'),
     path('reset_password/<str:token>/',views.reset_password, name='reset_password'),
+
+    path('prof/forgot_password/', views.prof_forgot_password, name='prof_forgot_password'),
+    path('prof/reset_password/<str:token>/', views.prof_reset_password, name='prof_reset_password'),    
+
     ]

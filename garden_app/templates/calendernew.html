@@ -80,62 +80,41 @@
             calendar.render();
         });
         function displayUpcomingEvents() {
-        const container = document.getElementById('upcoming-events');
-        container.innerHTML = '<p class="text-gray-500">Loading...</p>'; // Loading state
+    const container = document.getElementById('upcoming-events');
+    container.innerHTML = '<p class="text-gray-500">Loading...</p>'; // Loading state
 
-        // Fetch events from the server
-        fetch('/get-events/')
-            .then(response => response.json())
-            .then(events => {
-                // Get current date in 'YYYY-MM-DD' format
-                const currentDate = new Date().toISOString().split('T')[0];
+    // Fetch events from the server
+    fetch('/get-events/')
+        .then(response => response.json())
+        .then(events => {
+            const currentDate = new Date().toISOString().split('T')[0];
 
-                // Filter upcoming events (events whose start date is today or in the future)
-                const upcomingEvents = events.filter(event => {
-                    // Convert event start date to 'YYYY-MM-DD'
-                    const eventDate = event.start;
-
-                    // Compare event date with current date
-                    return eventDate >= currentDate;
-                });
-
-                // Clear the container for upcoming events
-                container.innerHTML = '';
-
-                if (upcomingEvents.length === 0) {
-                    container.innerHTML = '<p class="text-gray-500">No upcoming events</p>';
-                } else {
-                    // Render event cards for each upcoming event
-                    upcomingEvents.forEach(event => {
-                        container.appendChild(createEventCard(event));
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching events:', error);
-                container.innerHTML = '<p class="text-red-500">Failed to load upcoming events. Please try again.</p>';
+            // Filter upcoming events
+            const upcomingEvents = events.filter(event => {
+                const eventDate = new Date(event.start).toISOString().split('T')[0];
+                return eventDate >= currentDate;
             });
-    }
+
+            container.innerHTML = '';
+            if (upcomingEvents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No upcoming events</p>';
+            } else {
+                upcomingEvents.forEach(event => {
+                    container.appendChild(createEventCard(event));
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching events:', error);
+            container.innerHTML = '<p class="text-red-500">Failed to load upcoming events. Please try again.</p>';
+        });
+}
 
     document.addEventListener('DOMContentLoaded', function() {
         displayUpcomingEvents(); // Display upcoming events when the page loads
     });
 
-    // Create event card for rendering event details
-    function createEventCard(event) {
-        const div = document.createElement('div');
-        div.className = 'bg-gray-50 rounded-lg p-4 shadow';
 
-        div.innerHTML = `
-            <h3 class="font-bold text-lg">${event.title}</h3>
-            <p class="text-gray-600">${event.start}</p> <!-- Show event date -->
-            <p class="text-gray-600">Venue: ${event.hall_name || 'No venue provided'}</p>
-            <p class="text-gray-600">${event.timeRange}</p>
-            <p class="text-gray-600 mt-2">${event.description || 'No description available'}</p>
-        `;
-
-        return div;
-    }
         function searchDate() {
             const dateInput = document.getElementById('dateSearch');
             if (dateInput.value) {
@@ -181,60 +160,54 @@
                     container.innerHTML = '<p class="text-red-500">Failed to load events. Please try again.</p>';
                 });
         }
+// Create event card for rendering event details
+function createEventCard(event) {
+    const div = document.createElement('div');
+    div.className = 'bg-gray-50 rounded-lg p-4 shadow';
 
-        function createEventCard(event) {
-            const div = document.createElement('div');
-            div.className = 'bg-gray-50 rounded-lg p-4 shadow';
+    const eventDate = new Date(event.start);
+    const formattedTime = event.timeRange || "N/A";
 
-            const eventDate = new Date(event.start);
-            const formattedTime = event.timeRange || "N/A";
+    div.innerHTML = `
+        <h3 class="font-bold text-lg">${event.title}</h3>
+        <p class="text-gray-600">${eventDate.toLocaleDateString()}</p>
+        <p class="text-gray-600">Venue: ${event.hall_name || 'No venue provided'}</p>
+        <p class="text-gray-600">${formattedTime}</p>
+        <p class="text-gray-600 mt-2">${event.description || 'No description available'}</p>
+    `;
+    return div;
+}
 
-            div.innerHTML = `
-                <h3 class="font-bold text-lg">${event.title}</h3>
-                <p class="text-gray-600">${eventDate.toLocaleDateString()}</p>
-                <p class="text-gray-600">Venue : ${event.hall_name || 'No venue provided'}</p>
-                <p class="text-gray-600">${formattedTime}</p>
-                <p class="text-gray-600 mt-2">${event.description}</p>
-            `;
-            return div;
-        }
-        function displayPreviousEvents() {
-        const container = document.getElementById('previous-events');
-        container.innerHTML = '<p class="text-gray-500">Loading...</p>'; // Loading state
+function displayPreviousEvents() {
+    const container = document.getElementById('previous-events');
+    container.innerHTML = '<p class="text-gray-500">Loading...</p>'; // Loading state
 
-        // Fetch events from the server
-        fetch('/get-events/')
-            .then(response => response.json())
-            .then(events => {
-                // Get current date in 'YYYY-MM-DD' format
-                const currentDate = new Date().toISOString().split('T')[0];
+    // Fetch events from the server
+    fetch('/get-events/')
+        .then(response => response.json())
+        .then(events => {
+            const currentDate = new Date().toISOString().split('T')[0];
 
-                // Filter previous events (events whose start date is before today)
-                const previousEvents = events.filter(event => {
-                    // Convert event start date to 'YYYY-MM-DD'
-                    const eventDate = event.start;
-
-                    // Compare event date with current date
-                    return eventDate < currentDate;
-                });
-
-                // Clear the container for previous events
-                container.innerHTML = '';
-
-                if (previousEvents.length === 0) {
-                    container.innerHTML = '<p class="text-gray-500">No previous events</p>';
-                } else {
-                    // Render event cards for each previous event
-                    previousEvents.forEach(event => {
-                        container.appendChild(createEventCard(event));
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching events:', error);
-                container.innerHTML = '<p class="text-red-500">Failed to load previous events. Please try again.</p>';
+            // Filter previous events
+            const previousEvents = events.filter(event => {
+                const eventDate = new Date(event.start).toISOString().split('T')[0];
+                return eventDate < currentDate;
             });
-    }
+
+            container.innerHTML = '';
+            if (previousEvents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No previous events</p>';
+            } else {
+                previousEvents.forEach(event => {
+                    container.appendChild(createEventCard(event));
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching events:', error);
+            container.innerHTML = '<p class="text-red-500">Failed to load previous events. Please try again.</p>';
+        });
+}
 
     document.addEventListener('DOMContentLoaded', function() {
         displayPreviousEvents(); // Display previous events when the page loads

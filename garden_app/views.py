@@ -32,6 +32,8 @@ from .models import user_reg  # Import your model
 
 from django.contrib.auth.hashers import check_password
 
+from django.contrib.auth.hashers import check_password
+
 def login(request):
     if request.method == "POST":
         email = request.POST.get('email')
@@ -42,7 +44,6 @@ def login(request):
         if user and check_password(password, user.password):  # Compare using check_password
             request.session['id'] = user.id
             request.session['ema'] = user.email
-            request.session['password'] = user.password  # Not recommended to store password in session
             
             if user.status == 'approved':
                 return redirect('userHome')
@@ -55,40 +56,47 @@ def login(request):
 
 
 
+from django.contrib.auth.hashers import make_password
+
+from django.contrib.auth.hashers import make_password
+
 def register(request):
     if request.method == "POST":
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         address = request.POST.get("address")
         email = request.POST.get("email")
-        phone = request.POST.get("phone") or ''  # Ensure phone is not None
+        phone = request.POST.get("phone") or ''
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
         if user_reg.objects.filter(email=email).exists():
-            alert_message="<script>alert('EMAIL ALREADY EXIST'); window.location.href='/register/';</script>"
+            alert_message = "<script>alert('EMAIL ALREADY EXIST'); window.location.href='/register/';</script>"
             return HttpResponse(alert_message)
         
         if password != confirm_password:
             messages.error(request, 'Passwords do not match!')
             return render(request, 'register.html')
 
+        hashed_password = make_password(password)  # Hash the password before saving
+
         user = user_reg(
             first_name=first_name,
             last_name=last_name,
             email=email,
-            phone=phone,  # Phone can be empty or a string
-            password=password,
-            confirm_password=confirm_password,
+            phone=phone,
+            password=hashed_password,  # Store hashed password
+            confirm_password=hashed_password,  # Ensure this is also hashed
             address=address,
             status='applied',
         )
         user.save()
 
         messages.success(request, 'Registration successful! You can now log in.')
-        return render(request,'login.html')
+        return render(request, 'login.html')
 
     return render(request, 'register.html')
+
 
 def userlist(request):
     user = user_reg.objects.all()
@@ -584,7 +592,8 @@ def add_cart(request):
              seller_name=seller_name, seller_phone=seller_phone, first_name=first_name, 
              phone=phone, email=email).save()
 
-        return render(request, 'user_prod.html')
+        return render(request, 'userHome.html', {'products': products.objects.all()})
+
 
     else:
         return render(request, 'addcart.html')
@@ -1166,68 +1175,76 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import user_reg , prof_reg
 
+from django.shortcuts import render, redirect
+from .models import user_reg, prof_reg, Reminder, pReminder
+
+from django.shortcuts import render, redirect
+from .models import user_reg, prof_reg, Reminder, pReminder
+
 def calendar(request):
-    
-   
-    if 'ema' in request.session:
-        email=request.session['ema']
-        ur= user_reg.objects.get(email=email)
-        user = Task.objects.filter(user=ur)
-        reminders = Reminder.objects.filter(user=ur)  # Filter reminders by the user
+    # Check session for the correct email depending on user type
+    prof_email = request.session.get('email')  # Email for professor
+    user_email = request.session.get('ema')  # Email for customer
 
+    if not prof_email and not user_email:
+        return redirect('login')  # If neither email is in session, redirect to login
 
-        if request.method == 'POST':
-            title = request.POST.get('title')
-            date = request.POST.get('date')
-            time = request.POST.get('time')
-            reminder_text = request.POST.get('reminder_text')
-        
-            if title and date:
-                reminder = Reminder(
-                    title=title,
-                date=date,
-                    time=time,
-                    reminder_text=reminder_text,
-                    user=ur,
-                    task_title = request.POST.get('task_title'),  # Get task title from the form (if any)
-                    task_status = request.POST.get('task_status', 'False') == 'True' ,
-                )
-                reminder.save()
-                return redirect('tools')  # Redirect to the calendar page
+    ur = None
+    reminders = []
 
-    
-    
-   
-        return render(request, 'tools.html',{'user':user,'reminders': reminders})
-    
-    emai=request.session['email']
-    ur= prof_reg.objects.get(em=emai)
-    user = Task.objects.all()
-    reminders = Reminder.objects.all()  # Fi
+    # Check if the logged-in user is a customer (user_reg) or a professional (prof_reg)
+    if user_email:
+        try:
+            # User is a customer
+            ur = user_reg.objects.get(email=user_email)
+            reminders = Reminder.objects.filter(user=ur)  # Fetch customer reminders
+        except user_reg.DoesNotExist:
+            return redirect('login')  # If customer not found, redirect to login
+
+    elif prof_email:
+        try:
+            # User is a professor
+            ur = prof_reg.objects.get(em=prof_email)
+            reminders = pReminder.objects.filter(user=ur)  # Fetch professional reminders
+        except prof_reg.DoesNotExist:
+            return redirect('login')  # If professor not found, redirect to login
+
+    # Handle POST request for adding a reminder
     if request.method == 'POST':
-        
         title = request.POST.get('title')
         date = request.POST.get('date')
         time = request.POST.get('time')
         reminder_text = request.POST.get('reminder_text')
-            
-        if title and date:
-            reminder = pReminder(
-                title=title,
-                date=date,
-                time=time,
-                reminder_text=reminder_text,
-                user=ur,
-                task_title = request.POST.get('task_title'),  # Get task title from the form (if any)
-                task_status = request.POST.get('task_status', 'False') == 'True' ,
-            )
-            reminder.save()
-            return redirect('tools')  # Redirect to the calendar page
 
-        
-        
-    
-    return render(request, 'tools.html',{'user':user,'reminders': reminders})
+        if title and date:
+            task_status = request.POST.get('task_status', 'False') == 'True'
+
+            # Save reminder based on user type
+            if isinstance(ur, user_reg):
+                reminder = Reminder(
+                    title=title,
+                    date=date,
+                    time=time,
+                    reminder_text=reminder_text,
+                    user=ur,
+                    task_status=task_status,
+                )
+                reminder.save()
+            else:
+                reminder = pReminder(
+                    title=title,
+                    date=date,
+                    time=time,
+                    reminder_text=reminder_text,
+                    user=ur,
+                    task_status=task_status,
+                )
+                reminder.save()
+
+            return redirect('calendar')  # Redirect to the calendar page after saving the reminder
+
+    return render(request, 'tools.html', {'reminders': reminders})
+
 
 # def callist(request):
 #     ur = user_reg.objects.get(email=email)
@@ -1236,22 +1253,35 @@ def calendar(request):
 #     return render(request,'callist.html',{'cal':cal})
 
 
-def callist(request):
-    if 'email'  in request.session:
-        email = request.session['email']
-        ur = user_reg.objects.get(email=email)
-        reminders = Reminder.objects.filter(user=ur)  # Filter reminders by the user
-    return render(request, 'tools.html', {'reminders': reminders})
+# def callist(request):
+#     if 'email'  in request.session:
+#         email = request.session['email']
+#         if user_reg.objects.filter(email=email).exists():
+#             ur = user_reg.objects.get(email=email)
+#             reminders = Reminder.objects.filter(user=ur)  # Private reminders for the customer
+#         else:
+#             ur = prof_reg.objects.get(em=email)
+#             reminders = pReminder.objects.all()  # Public reminders for the professor
+    
+#     return render(request, 'tools.html', {'reminders': reminders})
 
 
 
-def delete_reminder(request,id):
+def delete_reminder(request, id):
     try:
+        # Try to delete the customer's reminder
         cal = Reminder.objects.get(id=id)
         cal.delete()
-        return redirect('callist')
     except Reminder.DoesNotExist:
-      raise Http404('Reminder does not exist')
+        try:
+            # If it's not a customer's reminder, try deleting a professional's reminder
+            cal = pReminder.objects.get(id=id)
+            cal.delete()
+        except pReminder.DoesNotExist:
+            raise Http404('Reminder does not exist')
+
+    return redirect('calendar')  # Redirect to calendar after deleting
+
 
 from django.shortcuts import render
 from django.utils.timezone import now
@@ -1373,20 +1403,87 @@ from .models import Reminder
 from django.contrib.auth.decorators import login_required
 
 def calendernew(request):
-    id=request.session['id']
+    # Get session variables: 'ema' for customer and 'email' for professor.
+    prof_email = request.session.get('email')  # For professor
+    user_email = request.session.get('ema')    # For customer
 
-    reminders = Reminder.objects.filter(user=id)
-    reminders_data = [
-        {
-            "id": reminder.id,
-            "title": reminder.title,
-            "description": reminder.reminder_text,
-            "date": reminder.date.strftime("%Y-%m-%d"),
-            "time": reminder.time.strftime("%H:%M"),
-            "status": reminder.task_status,
-        }
-        for reminder in reminders
-    ]
+    if not prof_email and not user_email:
+        return redirect('login')  # Redirect to login page if no user session.
+
+    reminders_data = []
+
+    if user_email:
+        # Logged in as a customer:
+        try:
+            user = user_reg.objects.get(email=user_email)
+        except user_reg.DoesNotExist:
+            return redirect('login')
+
+        # Fetch the customer's reminders from the 'Reminder' model
+        user_reminders = Reminder.objects.filter(user=user)
+        
+        # Also fetch *all* professor reminders from the 'pReminder' model
+        prof_reminders = pReminder.objects.all()
+
+        # Log the query results for debugging
+        print("User Reminders:", user_reminders)
+        print("Professor Reminders:", prof_reminders)
+
+        # Format customer reminders
+        reminders_data = [
+            {
+                "id": r.id,
+                "title": r.title,
+                "description": r.reminder_text,
+                "date": r.date.strftime("%Y-%m-%d"),
+                "time": r.time.strftime("%H:%M"),
+                "venue": r.venue,
+                "status": r.task_status,
+            }
+            for r in user_reminders
+        ]
+        
+        # Append all professor reminders
+        reminders_data.extend([
+            {
+                "id": r.id,
+                "title": r.title,
+                "description": r.reminder_text,
+                "date": r.date.strftime("%Y-%m-%d"),
+                "time": r.time.strftime("%H:%M"),
+                "venue": r.venue,
+                "status": r.task_status,
+            }
+            for r in prof_reminders
+        ])
+
+    elif prof_email:
+        # Logged in as a professor:
+        try:
+            user = prof_reg.objects.get(em=prof_email)
+        except prof_reg.DoesNotExist:
+            return redirect('login')
+
+        # Fetch only this professor's reminders from 'pReminder' model
+        reminders = pReminder.objects.filter(user=user)
+
+        # Log the query result for debugging
+        print("Professor Reminders:", reminders)
+
+        reminders_data = [
+            {
+                "id": r.id,
+                "title": r.title,
+                "description": r.reminder_text,
+                "date": r.date.strftime("%Y-%m-%d"),
+                "time": r.time.strftime("%H:%M"),
+                "venue": r.venue,
+                "status": r.task_status,
+            }
+            for r in reminders
+        ]
+
+    # Render the reminders in the template
     return render(request, 'calendernew.html', {'reminders': reminders_data})
 
 

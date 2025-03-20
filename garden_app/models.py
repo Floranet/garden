@@ -94,7 +94,7 @@ class Reminder(models.Model):
     reminder_text = models.TextField(blank=True)
     date = models.DateField()
     user = models.ForeignKey(user_reg, on_delete=models.CASCADE)
-    task_title = models.CharField(max_length=200, blank=True, null=True)  # Title of the task
+    venue = models.CharField(max_length=200, blank=True, null=True)  # Title of the task
     task_status = models.BooleanField(default=False)
     time = models.TimeField()
     def __str__(self):
@@ -207,7 +207,7 @@ class pReminder(models.Model):
     reminder_text = models.TextField(blank=True)
     date = models.DateField()
     user = models.ForeignKey(prof_reg, on_delete=models.CASCADE)
-    task_title = models.CharField(max_length=200, blank=True, null=True)  # Title of the task
+    venue = models.CharField(max_length=200, blank=True, null=True)  # Title of the task
     task_status = models.BooleanField(default=False)
     time = models.TimeField()
     def __str__(self):

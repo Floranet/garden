@@ -1388,6 +1388,7 @@ def get_events(request):
                 'title': event.title,
                 'start': event.date.strftime('%Y-%m-%d'),  # Ensure date is in 'YYYY-MM-DD' format
                 'description': event.reminder_text,
+                'venue':event.venue,
                 'timeRange': event.time.strftime('%H:%M'),  # Include the time if needed
                 
             })

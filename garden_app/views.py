@@ -381,42 +381,55 @@ def update_pro(request):
     else:
         return render(request,'update_pro.html')
 
+from django.contrib.auth.hashers import make_password
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from .models import prof_reg  # Import your professor model
+
 def prfupdate(request):
-    em=request.session['email']
-    if request.method=="POST":
-        fname=request.POST.get('fname')
-        lname=request.POST.get('lname')
-        add=request.POST.get('add')
-        phno=request.POST.get('phno')
-        em=request.POST.get('em')
-        passw=request.POST.get('passw')
-        confirm_pass=request.POST.get('confirm_pass')
+    if request.method == "POST":
+        # Retrieve professor using session email
+        email = request.session.get("email")
+        if not email:
+            messages.error(request, "You must be logged in to update your profile.")
+            return redirect("proflogin")
 
-        data=prof_reg.objects.get(em=em)
-        data.fname=fname
-        data.lname=lname
-        data.add=add
-        data.phno=phno
-        data.em=em
-        data.passw=passw
-        data.confirm_pass=confirm_pass
+        prof = get_object_or_404(prof_reg, em=email)
 
-        data.save()
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        address = request.POST.get("address", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        password = request.POST.get("password", "").strip()
+        confirm_password = request.POST.get("confirm_password", "").strip()
 
-        pr =prof_reg.objects.get(em=em)
-        if pr:
-            prof_info = {
-            'fname':pr.fname,
-            'lname':pr.lname,
-            'add':pr.add,
-            'phno':pr.phno,
-            'em':pr.em,
-            'passw':pr.passw,
-            'confirm_pass':pr.confirm_pass,
-        }
-        return render(request,'profProfile.html',prof_info)
-    else:
-        return render(request,'update_pro.html')
+        # Validate required fields
+        if not all([first_name, last_name, address, phone]):
+            messages.error(request, "All fields are required!")
+            return redirect("update_pro")
+
+        # Update professor details
+        prof.fname = first_name
+        prof.lname = last_name
+        prof.add = address
+        prof.phno = phone
+
+        # Handle password update
+        if password:
+            if password == confirm_password:
+                prof.passw = make_password(password)  # Hash the password
+            else:
+                messages.error(request, "Passwords do not match!")
+                return redirect("update_pro")
+
+        prof.save()
+        messages.success(request, "Profile updated successfully!")
+        return redirect("profProfile")
+
+    return render(request, "update_pro.html")
+
 
 
 def profhome(request):
@@ -930,22 +943,33 @@ def deleteshop(request,sid):
         shops.delete()
         return redirect('shoplist')
     
-def edit_shop(request,sid):
-   
-    cr =shop.objects.get(id=sid)
-    if cr:
-        shop_info = {
-            'name':cr.name,
-            'shopid':cr.shopid,
-            # 'address':cr.address,
-            # 'phone':cr.phone,
-            # 'email':cr.email,
-            'description':cr.description,
-            'location':cr.location,
-        }
-        return render(request,'edit_shop.html',shop_info)
-    else:
-        return render(request,'edit_Shop.html')
+def edit_shop(request, sid):
+    shop_instance = shop.objects.get(id=sid)
+    
+    if request.method == "POST":
+        shop_instance.name = request.POST.get("name")
+        shop_instance.shopid = request.POST.get("shopid")
+        shop_instance.description = request.POST.get("description")
+        shop_instance.location = request.POST.get("location")
+        shop_instance.category = request.POST.get("category")
+
+        if 'img' in request.FILES:
+            shop_instance.img = request.FILES['img']  # Update image only if a new one is uploaded
+
+        shop_instance.save()  # Save the updated shop details
+        messages.success(request, "Shop updated successfully!")  
+        return redirect('shoplist')  # Redirect to the shop list page after saving
+
+    shop_info = {
+        'name': shop_instance.name,
+        'shopid': shop_instance.shopid,
+        'description': shop_instance.description,
+        'location': shop_instance.location,
+        'category': shop_instance.category,
+    }
+
+    return render(request, 'edit_shop.html', shop_info)
+
     
 
 def user_shoplist(request):

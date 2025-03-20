@@ -332,27 +332,25 @@ def profreg(request):
 
     return render(request, 'profreg.html')
 
+from django.contrib.auth.hashers import check_password
+
 def proflogin(request):
     if request.method == "POST":
         em = request.POST.get('em')
         passw = request.POST.get('passw')
-        pr = prof_reg.objects.filter(em=em, passw=passw).first()  # Retrieve the first match or None
+        pr = prof_reg.objects.filter(em=em).first()  # Get user by email
         
-        if pr and check_password(passw, pr.passw):  # Compare using check_password
+        if pr and check_password(passw, pr.passw):  # Correctly check hashed password
             request.session['id'] = pr.id
             request.session['email'] = pr.em
-            request.session['passw'] = pr.passw
-            
+
             if pr.status == 'approved': 
-                # Redirect to the professional home page
-                return redirect('profhome') 
+                return redirect('profhome')  # Redirect if approved
             else: 
-                # If not approved, display a waiting message
-                return render(request, 'proflogin.html', {'error': 'Your account is not yet approved. Please wait until the admin approves your registration.'}) 
+                return render(request, 'proflogin.html', {'error': 'Your account is not yet approved. Please wait until the admin approves your registration.'})
         else:
-            # Handle case where credentials are incorrect
             return render(request, 'proflogin.html', {'error': 'Invalid email or password.'})
-            
+    
     return render(request, 'proflogin.html')
 
     

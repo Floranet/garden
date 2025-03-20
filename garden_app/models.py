@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 from django import forms
 from django.core.exceptions import ValidationError
+from django.contrib.auth.hashers import make_password
+
 
 # Create your models here.
 class user_reg(models.Model):

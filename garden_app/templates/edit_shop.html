@@ -4,165 +4,119 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Shop</title>
+
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.0/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #c9f0cc;
-            margin: 0;
-            padding: 0;
+            background-image: url('https://source.unsplash.com/1600x900/?gardening,plants');
+            background-size: cover;
+            background-position: center;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             height: 100vh;
+            color: #2e4d25; /* Dark green for readability */
         }
 
-        .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
+        .shop-form-container {
+            background: #e6f4ea; /* Light green background */
+            padding: 2rem;
+            border-radius: 12px;
             width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-        h2 {
-            text-align: center;
-            color: #333;
+        .form-control, .btn-submit, .btn-back {
+            border-radius: 8px;
         }
 
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        label {
-            margin-top: 10px;
-            margin-bottom: 5px;
+        .btn-submit {
+            background-color: #4CAF50; /* Garden Green */
+            color: white;
             font-weight: bold;
         }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="file"],
-        textarea,
-        select {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 100%;
-            font-size: 14px;
+        .btn-submit:hover {
+            background-color: #388E3C;
         }
 
-        textarea {
-            resize: none;
-            height: 60px;
-        }
-
-        button {
-            background-color: #28a745;
+        .btn-back {
+            background-color: #388E3C;
             color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        button:hover {
-            background-color: #218838;
-        }
-
-        .alert {
-            color: red;
+            display: block;
+            width: 100%;
+            margin-bottom: 1rem;
             text-align: center;
+            text-decoration: none;
+            font-weight: bold;
         }
 
-        .footer-link {
-            color:rgb(255, 255, 255);
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px; /* Added space between links */
+        .btn-back:hover {
+            background-color: #2c6c30;
         }
-        .footer-link:hover {
-            text-decoration: underline;
-        }
-        .navbar-nav {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 15px;
-            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background for better visibility */
-            border-radius: 6px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .navbar-nav .nav-link {
-            color: #23653a !important;
-            font-weight: 600;
-            font-size: 20px;
-            text-transform: uppercase;
-            padding: 12px 20px;
-            text-decoration: none;
-            transition: color 0.3s ease-in-out, transform 0.3s;
-        }
-        .navbar-nav .nav-link:hover {
-            color: green !important;
-            transform: scale(1.05);
+
+        label {
+            font-weight: bold;
+            color: #2e4d25; /* Dark green */
         }
     </style>
 </head>
 <body>
-    <header class="header_section">
-        <nav>
-            <div class="navbar-nav">
-                <a class="nav-link active" href="/index/">Home</a>
-                <a class="nav-link" href="/userProfile/">Profile</a>
-                <a class="nav-link" href="/user_prod/">Product list</a>
-                <a class="nav-link" href="/user_shoplist/">View shops</a>
-                <a class="nav-link" href="/edu/">Resource</a>
-                <a class="nav-link" href="/chat/">Chat Room</a>
-                <a class="nav-link" href="/tools/">Management</a>
-                <a class="nav-link" href="/feedback_rate/">Feedback</a>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <h2>Add Shop</h2>
+    <div class="shop-form-container">
+        <h1 class="text-center mb-4" style="color: #2e4d25;">Edit Shop</h1>
+
         <form method="POST" enctype="multipart/form-data">
-            <form action="/edit_Shop/" method="post"></form>
             {% csrf_token %}
-            <label for="name">Shop Name:</label>
-            <input type="text" id="name" name="name" value="{{name}}">
 
-            <label for="shopid">Shop ID:</label>
-            <input type="text" id="shopid" name="shopid" value="{{shopid}}">
+            <div class="form-group">
+                <label for="name">Shop Name:</label>
+                <input type="text" id="name" name="name" class="form-control" value="{{ name }}" required>
+            </div>
 
-            <!-- <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="{{email}}">
+            <div class="form-group">
+                <label for="shopid">Shop ID:</label>
+                <input type="text" id="shopid" name="shopid" class="form-control" value="{{ shopid }}" required>
+            </div>
 
-            <label for="phone">Phone:</label>
-            <input type="text" id="phone" name="phone" maxlength="10" value="{{phone}}"> -->
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" class="form-control" placeholder="Describe the shop" required>{{ description }}</textarea>
+            </div>
 
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" value="{{description}}"></textarea>
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" class="form-control" value="{{ location }}" required>
+            </div>
 
-            <label for="location">Location:</label>
-            <input type="text" id="location" name="location" value="{{location}}">
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <select id="category" name="category" class="form-control">
+                    <option value="Nurseries & Plant Retailers" {% if category == "Nurseries & Plant Retailers" %}selected{% endif %}>Nurseries & Plant Retailers</option>
+                    <option value="Supply Stores" {% if category == "Supply Stores" %}selected{% endif %}>Supply Stores</option>
+                    <option value="Specialty" {% if category == "Specialty" %}selected{% endif %}>Specialty</option>
+                </select>
+            </div>
 
-            <label for="category">Category:</label>
-            <select id="category" name="category">
-                <option value="Plants">Plants</option>
-                <option value="Tools">Tools</option>
-                <option value="Seeds">Seeds</option>
-            </select>
+            <div class="form-group">
+                <label for="img">Upload Image:</label>
+                <input type="file" id="img" name="img" class="form-control-file" accept="image/*">
+            </div>
 
-            <label for="img">Image:</label>
-            <input type="file" id="img" name="img" accept="image/*" value="{{img}}">
-
-            <button type="submit">Add Shop</button>
-            <button><a class="footer-link" href="{% url 'shoplist' %}">Your Shop list</a></button>
-            <button><a class="footer-link" href="{% url 'profProfile' %}"></a>Back</button>
+            <button type="submit" class="btn btn-submit btn-block">Add Shop</button><br>
+            
+            <a href="{% url 'shoplist' %}" class="btn btn-back">Back to Shop List</a>
+            <a href="{% url 'profProfile' %}" class="btn btn-back">Back to Profile</a>
         </form>
     </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

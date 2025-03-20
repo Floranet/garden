@@ -56,9 +56,6 @@
         .info-item input:focus {
             border-bottom: 2px solid #2E7D32;
         }
-        .info-item .info-text, .info-item input {
-            transition: all 0.3s ease;
-        }
         .btn-submit {
             background: #2E7D32;
             color: #fff;
@@ -76,64 +73,66 @@
             margin-top: 20px;
             width: 48%;
         }
-        .btn-profile {
+        .btn-profile, .btn-home {
             background: #1B5E20;
             color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            display: inline-block;
+            text-decoration: none;
+            font-weight: bold;
         }
-        .btn-profile:hover {
-            background: #1B5E20;
-        }
-        .btn-home {
-            background: #1B5E20;
-            color: #fff;
-        }
-        .btn-home:hover {
-            background: #1B5E20;
+        .btn-profile:hover, .btn-home:hover {
+            background: #144d14;
         }
     </style>
 </head>
 <body>
-    <h2><center>Update Profile</center></h2>
-    <div class="container">
-        <div class="profile-header">
-            <div class="profile-name">{{ fname }} {{ lname }}</div>
-        </div>
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div class="profile-container">
+            <h2>Edit Your Profile</h2>
         <form action="/prfupdate/" method="post">
             {% csrf_token %}
             <div class="profile-info">
-                <label for="firstName">First Name</label>
-                <input type="text" class="form-control" id="firstName" name="fname" value="{{fname}}" required>
+                <div class="info-item">
+                    <span class="info-text">First Name</span>
+                    <input type="text" name="first_name" value="{{fname}}">
+                </div>
+                <div class="info-item">
+                    <span class="info-text">Last Name</span>
+                    <input type="text" name="last_name" value="{{lname}}">
+                </div>
+                <div class="info-item">
+                    <span class="info-text">Email</span>
+                    <input type="email" name="email" value="{{em}}" readonly>
+                </div>
+                <div class="info-item">
+                    <span class="info-text">Address</span>
+                    <input type="text" name="address" value="{{add}}">
+                </div>
+                <div class="info-item">
+                    <span class="info-text">Phone Number</span>
+                    <input type="tel" name="phone" value="{{phno}}">
+                </div>
+                <div class="info-item">
+                    <span class="info-text">Password</span>
+                    <input type="password" name="password">
+                </div>
+                <div class="info-item">
+                    <span class="info-text">Confirm Password</span>
+                    <input type="password" name="confirm_password">
+                </div>
             </div>
-            <div class="profile-info">
-                <label for="lastName">Last Name</label>
-                <input type="text" class="form-control" id="lastName" name="lname" value="{{lname}}" required>
-            </div>
-            <div class="profile-info">
-                <label for="email">Email address</label>
-                <input type="email" class="form-control" id="email" name="em" value="{{em}}" required>
-            </div>
-            <div class="profile-info">
-                <label for="address">Address</label>
-                <input type="text" class="form-control" id="address" name="add" value="{{add}}" required>
-            </div>
-            <div class="profile-info">
-                <label for="phone">Phone Number</label>
-                <input type="tel" class="form-control" id="phone" name="phno" value="{{phno}}" required>
-            </div>
-            <div class="profile-info">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="passw" value="{{passw}}" required>
-            </div>
-            <div class="profile-info">
-                <label for="confirmPassword">Confirm Password</label>
-                <input type="password" class="form-control" id="confirmPassword" name="confirm_pass" value="{{confirm_pass}}" required>
-            </div>
-            <div class="d-grid">
-                <button type="submit" class="btn update-btn">Save Changes</button>
+            <button type="submit" class="btn-submit">Update Profile</button>
+            <div class="d-flex justify-content-between">
+                <a href="/profProfile/" class="btn-profile">Go Back to Profile</a>
+                <a href="/profhome/" class="btn-home">Home</a>
             </div>
         </form>
     </div>
-
+</div>
     <!-- Bootstrap JS (optional) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

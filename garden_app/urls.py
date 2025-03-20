@@ -91,4 +91,9 @@ urlpatterns = [
     path('share_photo/<photo_id>/', views.share_photo, name='share_photo'),
     path('view_my_photos/', views.view_my_photos, name='view_my_photos'),
     path('delete_my_photo/<photo_id>/', views.delete_my_photo,name='delete_my_photo'),
+
+
+    
+    path('forgot_password/',views.forgot_password, name='forgot_password'),
+    path('reset_password/<str:token>/',views.reset_password, name='reset_password'),
     ]

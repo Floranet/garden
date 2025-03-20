@@ -88,9 +88,58 @@
             text-decoration: underline;
         }
 
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+              /* Navigation Bar */
+              .navbar-nav {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            justify-content: space-between;
+            width: calc(100% - 20px);
+            z-index: 100;
+        }
+
+        .navbar-nav .nav-link {
+            text-decoration: none;
+            color: #4CAF50;
+            font-weight: bold;
+            padding: 10px 20px;
+            font-size: 1.8rem;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #388E3C;
+        }
+
+        .navbar-nav .nav-link.back::before {
+            content: "<";
+            padding-right: 8px;
+            font-size: 2rem;
+        }
     </style>
 </head>
 <body>
+    <div class="navbar-nav">
+        <a class="nav-link back" href="/profProfile/"> Back</a> 
+        <a href="/profhome/" class="nav-link home">Home</a>
+    </div><br>
     <div class="wrapper">
         <h1>Available Shops</h1>
         <div class="shop-list">

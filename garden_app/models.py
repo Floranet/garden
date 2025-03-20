@@ -15,6 +15,7 @@ class user_reg(models.Model):
     password=models.CharField(max_length=100)
     confirm_password=models.CharField(max_length=100)
     address=models.CharField(max_length=100)
+    reset_token = models.CharField(max_length=50, blank=True, null=True)
     status=models.CharField(max_length=20,choices=STATUS,default='applied')
     def __str__(self):
         return self.first_name
@@ -165,13 +166,13 @@ class shop(models.Model):
     shopid =models.IntegerField(unique=True)
     email =models.EmailField(max_length=100)
     phone =models.CharField(max_length=10)
-    description =models.TextField(max_length=100)
+    description =models.TextField()
     location =models.CharField(max_length=100)
     img =models.ImageField(upload_to='shopimages/')
     category_choices =(
-        ('Plants','Plants'),
-        ('Tools','Tools'),
-        ('Seeds','Seeds')
+        ('Nurseries & Plant Retailers','Nurseries & Plant Retailers'),
+        ('Supply Stores','Supply Stores'),
+        ('Specialty','Specialty')
     )
  
 

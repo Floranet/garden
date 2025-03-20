@@ -30,28 +30,25 @@ def select(request):
 from django.shortcuts import render, redirect
 from .models import user_reg  # Import your model
 
+from django.contrib.auth.hashers import check_password
+
 def login(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
-        cr = user_reg.objects.filter(email=email, password=password).first()  # Retrieve the first match or None
-        
-        if cr:  # Check if a user exists
-            id = cr.id
-            email = cr.email
-            password = cr.password
-            request.session['id'] = id
-            request.session['ema'] = email
-            request.session['password'] = password
+
+        user = user_reg.objects.filter(email=email).first()  # Retrieve the user
+
+        if user and check_password(password, user.password):  # Compare using check_password
+            request.session['id'] = user.id
+            request.session['ema'] = user.email
+            request.session['password'] = user.password  # Not recommended to store password in session
             
-            if cr.status == 'approved': 
-                # Set session and redirect to the index page 
-                return redirect('userHome') 
-            else: 
-                # If not approved, redirect back with a waiting message 
-                return render(request, 'login.html', {'error': 'Your account is not yet approved. Please wait until the admin approves your registration.'}) 
+            if user.status == 'approved':
+                return redirect('userHome')
+            else:
+                return render(request, 'login.html', {'error': 'Your account is not yet approved. Please wait until the admin approves your registration.'})
         else:
-            # Handle case where credentials are incorrect
             return render(request, 'login.html', {'error': 'Invalid email or password.'})
 
     return render(request, 'login.html')
@@ -365,7 +362,10 @@ def profProfile(request):
 
 
 def update_pro(request):
-    em=request.session['em']
+    em=request.session['email']
+    if not em:  
+        return redirect('proflogin') 
+    
     pr =prof_reg.objects.get(em=em)
     if pr:
         prof_info = {
@@ -1741,3 +1741,68 @@ def delete_my_photo(request, photo_id):
     photo.delete()
     
     return JsonResponse({'success': True})
+
+from django.shortcuts import render, redirect
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.utils.crypto import get_random_string
+from django.urls import reverse
+from .models import user_reg
+
+def forgot_password(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        user = user_reg.objects.filter(email=email).first()
+        
+        if user:
+            # Generate unique token (temporary password or reset link)
+            reset_token = get_random_string(length=32)
+            user.reset_token = reset_token  # Store token in DB (add this field to your model)
+            user.save()
+
+            # Generate password reset link
+            reset_link = request.build_absolute_uri(reverse('reset_password', args=[reset_token]))
+
+            # Send email with reset link
+            send_mail(
+                "Password Reset Request - FloraNet",
+                f"Click the link below to reset your password:\n{reset_link}",
+                "FloraNet",  # Replace with your email
+                [email],
+                fail_silently=False,
+            )
+
+            messages.success(request, "A password reset link has been sent to your email.")
+            return redirect('login')
+
+        else:
+            messages.error(request, "Email not found! Please enter a registered email.")
+    
+    return render(request, 'forgot_password.html')
+
+from django.contrib.auth.hashers import make_password
+
+def reset_password(request, token):
+    user = user_reg.objects.filter(reset_token=token).first()
+    
+    if not user:
+        messages.error(request, "Invalid or expired reset token.")
+        return redirect('login')
+
+    if request.method == "POST":
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if new_password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return render(request, "reset_password.html", {"token": token})
+
+        # Hash the password before saving
+        user.password = make_password(new_password)
+        user.reset_token = ""  # Clear reset token after successful reset
+        user.save()
+
+        messages.success(request, "Your password has been successfully reset! Please log in.")
+        return redirect("login")
+
+    return render(request, "reset_password.html", {"token": token})

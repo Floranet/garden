@@ -382,7 +382,7 @@ def update_pro(request):
         return render(request,'update_pro.html')
 
 def prfupdate(request):
-    em=request.session['em']
+    em=request.session['email']
     if request.method=="POST":
         fname=request.POST.get('fname')
         lname=request.POST.get('lname')

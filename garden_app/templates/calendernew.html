@@ -171,7 +171,7 @@ function createEventCard(event) {
     div.innerHTML = `
         <h3 class="font-bold text-lg">${event.title}</h3>
         <p class="text-gray-600">${eventDate.toLocaleDateString()}</p>
-        <p class="text-gray-600">Venue: ${event.hall_name || 'No venue provided'}</p>
+        <p class="text-gray-600">Venue: ${event.venue || 'No venue provided'}</p>
         <p class="text-gray-600">${formattedTime}</p>
         <p class="text-gray-600 mt-2">${event.description || 'No description available'}</p>
     `;
@@ -221,7 +221,7 @@ function displayPreviousEvents() {
         div.innerHTML = `
             <h3 class="font-bold text-lg">${event.title}</h3>
             <p class="text-gray-600">${event.start}</p> <!-- Show event date -->
-            <p class="text-gray-600">Venue: ${event.hall_name || 'No venue provided'}</p>
+            <p class="text-gray-600">Venue: ${event.venue || 'No venue provided'}</p>
             <p class="text-gray-600">${event.timeRange}</p>
             <p class="text-gray-600 mt-2">${event.description || 'No description available'}</p>
         `;

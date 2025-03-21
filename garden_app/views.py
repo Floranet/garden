@@ -66,6 +66,14 @@ from django.contrib.auth.hashers import make_password
 
 from django.contrib.auth.hashers import make_password
 
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from .models import user_reg  # Ensure this model is correctly defined
+
 def register(request):
     if request.method == "POST":
         first_name = request.POST.get("first_name")
@@ -73,27 +81,36 @@ def register(request):
         address = request.POST.get("address")
         email = request.POST.get("email")
         phone = request.POST.get("phone") or ''
-        password = request.POST.get("password",validators=[password_validation])
+        password = request.POST.get("password")  # Retrieve password without validators
         confirm_password = request.POST.get("confirm_password")
 
+        # Check if email already exists
         if user_reg.objects.filter(email=email).exists():
-            alert_message = "<script>alert('EMAIL ALREADY EXIST'); window.location.href='/register/';</script>"
+            alert_message = "<script>alert('EMAIL ALREADY EXISTS'); window.location.href='/register/';</script>"
             return HttpResponse(alert_message)
-        
+
+        # Check if passwords match
         if password != confirm_password:
             messages.error(request, 'Passwords do not match!')
             return render(request, 'register.html')
-        
 
-        hashed_password = make_password(password)  # Hash the password before saving
+        # Validate password using Django's built-in validation
+        try:
+            validate_password(password)  
+        except ValidationError as e:
+            messages.error(request, ' '.join(e.messages))  # Show validation errors
+            return render(request, 'register.html')
 
+        # Hash the password before saving
+        hashed_password = make_password(password)
+
+        # Create new user entry
         user = user_reg(
             first_name=first_name,
             last_name=last_name,
             email=email,
             phone=phone,
             password=hashed_password,  # Store hashed password
-            confirm_password=hashed_password,  # Ensure this is also hashed
             address=address,
             status='applied',
         )
@@ -929,6 +946,7 @@ def delete_res(request,title):
     except resource.DoesNotExist:
        raise Http404('This data does not exist')
     
+  # SHOP LIST----------------------------------------------  
 def addshop(request):
         if 'email' in request.session:
             semail=request.session['email']
@@ -966,7 +984,7 @@ def shoplist(request):
 
 
 def deleteshop(request,sid):
-    if 'em' in request.session:
+    if 'email' in request.session:
         shops=shop.objects.filter(id=sid)
         shops.delete()
         return redirect('shoplist')
@@ -1001,8 +1019,18 @@ def edit_shop(request, sid):
     
 
 def user_shoplist(request):
+    category = request.GET.get('category', '')
+    location = request.GET.get('location', '')
+
     shops = shop.objects.all()
+
+    if category:
+        shops = shops.filter(category=category)
+    if location:
+        shops = shops.filter(location__icontains=location)
+
     return render(request, 'user_shoplist.html', {'shops': shops})
+
 
 def ashoplist(request):
     shops = shop.objects.all()

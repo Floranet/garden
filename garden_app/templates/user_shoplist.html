@@ -150,6 +150,37 @@
     text-decoration: none;
     transition: background-color 0.3s ease, transform 0.2s;
   }
+  .filter-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.filter-form label {
+    font-weight: bold;
+}
+
+.filter-form select,
+.filter-form input {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.filter-button {
+    background-color: #28a745;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.filter-button:hover {
+    background-color: #218838;
+}
+
 
     </style>
 </head>
@@ -166,7 +197,28 @@
 
     <div class="wrapper">
         <h1>Available Shops</h1>
+        <!-- <form method="GET" class="filter-form">
+            <label for="category">Category:</label>
+            <select name="category" id="category">
+                <option value="">All</option>
+                <option value="Nurseries & Plant Retailers" {% if request.GET.category == "Nurseries & Plant Retailers" %}selected{% endif %}>
+                    Nurseries & Plant Retailers
+                </option>
+                <option value="Supply Stores" {% if request.GET.category == "Supply Stores" %}selected{% endif %}>
+                    Supply Stores
+                </option>
+                <option value="Specialty" {% if request.GET.category == "Specialty" %}selected{% endif %}>
+                    Specialty
+                </option>
+            </select>
+        
+            <label for="location">Location:</label>
+            <input type="text" name="location" id="location" placeholder="Enter city or state" value="{{ request.GET.location }}">
+        
+            <button type="submit" class="filter-button">Filter</button>
+        </form> -->
         <div class="shop-list">
+            <br><br>
             {% for s in shops %}
             <div class="shop-card" data-toggle="modal" data-target="#shopModal"
                  data-name="{{ s.name }}"

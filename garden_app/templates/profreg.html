@@ -118,6 +118,33 @@
             color: #388E3C;
         }
 
+        .alert {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+    color: white; /* Text color white */
+}
+
+.alert-success {
+    background-color: #28a745; /* Green background for success */
+}
+
+.alert-error {
+    background-color: #dc3545; /* Red background for errors */
+}
+
+.alert-warning {
+    background-color: #ffc107; /* Yellow background for warnings */
+    color: black; /* Black text for better visibility */
+}
+
+.alert-info {
+    background-color: #17a2b8; /* Blue background for info */
+}
+
+
     </style>
 </head>
 
@@ -159,6 +186,14 @@
 
                 <div id="password_strength" class="password-strength"></div>
                 <button type="submit">Register</button>
+                {% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
             </form>
         </div>
     </div>

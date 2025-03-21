@@ -1261,6 +1261,7 @@ def calendar(request):
         title = request.POST.get('title')
         date = request.POST.get('date')
         time = request.POST.get('time')
+        venue = request.POST.get('venue')
         reminder_text = request.POST.get('reminder_text')
 
         if title and date:
@@ -1274,6 +1275,7 @@ def calendar(request):
                     time=time,
                     reminder_text=reminder_text,
                     user=ur,
+                    venue=venue,
                     task_status=task_status,
                 )
                 reminder.save()
@@ -1284,6 +1286,7 @@ def calendar(request):
                     time=time,
                     reminder_text=reminder_text,
                     user=ur,
+                    venue=venue,
                     task_status=task_status,
                 )
                 reminder.save()

@@ -1291,7 +1291,7 @@ def calendar(request):
                 )
                 reminder.save()
 
-            return redirect('tools.html')  # Redirect to the calendar page after saving the reminder
+            return redirect('tools')  # ✅ Correct, using the URL name
 
     return render(request, 'tools.html', {'reminders': reminders})
 

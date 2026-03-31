@@ -1,4 +1,4 @@
-================================================================================
+
                             🌱  FLORANET
               Django-Based Gardening Community Platform
           BCA Final Year Project | Python • Django • Razorpay • Render
